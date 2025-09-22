@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yourdomain.aviatorgame"
+    namespace = "com.mycompany.aviatorgame"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.yourdomain.aviatorgame"
+        applicationId = "com.mycompany.aviatorgame"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -25,7 +25,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -88,6 +88,18 @@ dependencies {
     // Animation
     implementation("androidx.compose.animation:animation-graphics:1.5.4")
 
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Для решения проблем с Hilt
+kapt {
+    correctErrorTypes = true
 }
