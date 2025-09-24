@@ -30,12 +30,13 @@ fun ShopScreen(
     val context = LocalContext.current
     val activity = context as Activity
     val purchaseState by viewModel.purchaseState.collectAsState()
+    val currentPurchaseState = purchaseState
 
     // Handle purchase state
     LaunchedEffect(purchaseState) {
-        when (purchaseState) {
+        when (currentPurchaseState) {
             is BillingManager.PurchaseState.Success -> {
-                viewModel.handlePurchaseSuccess(purchaseState.coins)
+                viewModel.handlePurchaseSuccess(currentPurchaseState.coins)
             }
             else -> {}
         }
@@ -114,7 +115,7 @@ fun ShopScreen(
         }
 
         // Purchase status
-        when (purchaseState) {
+        when (currentPurchaseState) {
             is BillingManager.PurchaseState.Processing -> {
                 Box(
                     modifier = Modifier
@@ -133,7 +134,7 @@ fun ShopScreen(
                         Text("Purchase Failed", color = Color.White)
                     },
                     text = {
-                        Text(purchaseState.message, color = Color.White)
+                        Text(currentPurchaseState.message, color = Color.White)
                     },
                     confirmButton = {
                         TextButton(onClick = viewModel::resetPurchaseState) {
@@ -158,7 +159,7 @@ fun ShopScreen(
                                 textAlign = TextAlign.Center
                             )
                             Text(
-                                "You received ${purchaseState.coins.formatCoins()} coins!",
+                                "You received ${currentPurchaseState.coins.formatCoins()} coins!",
                                 color = Color.White,
                                 textAlign = TextAlign.Center
                             )

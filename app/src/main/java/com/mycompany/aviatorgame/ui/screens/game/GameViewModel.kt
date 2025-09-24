@@ -43,11 +43,18 @@ class GameViewModel @Inject constructor(
         gameJob = viewModelScope.launch {
             var multiplier = 1.0f
             while (multiplier < Constants.MAX_MULTIPLIER) {
-                delay(50) // Update every 50ms
-                multiplier += Constants.MULTIPLIER_SPEED
+                delay(Constants.PLANE_ANIMATION_DURATION)
+
+                // Используем динамическую скорость
+                val speed = Constants.getMultiplierSpeed(multiplier)
+                multiplier += speed
 
                 val crashed = repository.updateMultiplier(multiplier)
-                if (crashed) break
+                if (crashed) {
+                    // Добавляем небольшую задержку для анимации краша
+                    delay(Constants.CRASH_ANIMATION_DURATION)
+                    break
+                }
             }
         }
     }

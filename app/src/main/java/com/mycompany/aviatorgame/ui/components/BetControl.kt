@@ -1,5 +1,9 @@
 package com.mycompany.aviatorgame.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,69 +39,155 @@ fun BetControl(
     onDouble: () -> Unit,
     onHalve: () -> Unit
 ) {
+    val cardColor by animateColorAsState(
+        targetValue = when {
+            activeBet?.cashedOut == true -> Color(0xFF00ff88).copy(alpha = 0.1f)
+            activeBet != null && isPlaying -> Color(0xFF00d4ff).copy(alpha = 0.1f)
+            else -> Color(0xFF1f2844)
+        },
+        label = "card_color"
+    )
+
+    val borderColor = when {
+        activeBet?.cashedOut == true -> Color(0xFF00ff88)
+        activeBet != null && isPlaying -> Color(0xFF00d4ff)
+        else -> Color(0xFF2a3454)
+    }
+
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .border(
+                width = 2.dp,
+                brush = Brush.verticalGradient(
+                    colors = listOf(borderColor, borderColor.copy(alpha = 0.3f))
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2a2a3e)
+            containerColor = cardColor
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                "Bet $betNumber",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-
-            // Bet amount input
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
-                    value = amount.toString(),
-                    onValueChange = { value ->
-                        value.toIntOrNull()?.let { onAmountChange(it) }
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isPlaying && activeBet == null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.Gray
-                    ),
-                    singleLine = true
+                Text(
+                    "BET $betNumber",
+                    color = Color(0xFF6a7490),
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp
                 )
 
-                IconButton(
-                    onClick = onHalve,
-                    enabled = !isPlaying && activeBet == null
-                ) {
-                    Text("½", color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                if (activeBet != null && isPlaying && !activeBet.cashedOut) {
+                    val pulseAnimation by rememberInfiniteTransition(label = "pulse").animateFloat(
+                        initialValue = 0.8f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1000),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "pulse"
+                    )
 
-                IconButton(
-                    onClick = onDouble,
-                    enabled = !isPlaying && activeBet == null
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Color(0xFF00ff88).copy(alpha = pulseAnimation),
+                                RoundedCornerShape(50)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            "ACTIVE",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // Bet amount input
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Amount",
+                    color = Color(0xFF8890a6),
+                    fontSize = 12.sp
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("2x", color = Color.White, fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = amount.toString(),
+                        onValueChange = { value ->
+                            value.toIntOrNull()?.let { onAmountChange(it) }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isPlaying && activeBet == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF00d4ff),
+                            unfocusedBorderColor = Color(0xFF2a3454),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            disabledTextColor = Color.Gray,
+                            disabledBorderColor = Color(0xFF2a3454).copy(alpha = 0.5f),
+                            cursorColor = Color(0xFF00d4ff)
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        singleLine = true,
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        IconButton(
+                            onClick = onHalve,
+                            enabled = !isPlaying && activeBet == null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF2a3454))
+                                .size(48.dp)
+                        ) {
+                            Text("½", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+
+                        IconButton(
+                            onClick = onDouble,
+                            enabled = !isPlaying && activeBet == null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF2a3454))
+                                .size(48.dp)
+                        ) {
+                            Text("2x", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 
             // Auto cash out
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Auto:", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.width(8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Auto Cash Out",
+                    color = Color(0xFF8890a6),
+                    fontSize = 12.sp
+                )
+
                 OutlinedTextField(
                     value = autoCashOut?.toString() ?: "",
                     onValueChange = { value ->
@@ -105,16 +197,31 @@ fun BetControl(
                             value.toFloatOrNull()?.let { onAutoCashOutChange(it) }
                         }
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     enabled = !isPlaying && activeBet == null,
-                    placeholder = { Text("Auto cash out", fontSize = 12.sp) },
+                    placeholder = {
+                        Text(
+                            "Optional (e.g. 2.00)",
+                            color = Color(0xFF4a5268),
+                            fontSize = 14.sp
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF00d4ff),
+                        unfocusedBorderColor = Color(0xFF2a3454),
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.Gray
+                        disabledTextColor = Color.Gray,
+                        disabledBorderColor = Color(0xFF2a3454).copy(alpha = 0.5f),
+                        cursorColor = Color(0xFF00d4ff)
                     ),
-                    singleLine = true
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
             }
 
@@ -123,55 +230,106 @@ fun BetControl(
                 activeBet == null -> {
                     Button(
                         onClick = onPlaceBet,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isPlaying,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        enabled = !isPlaying && amount >= 10,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50)
-                        )
+                            containerColor = Color(0xFF00d4ff),
+                            disabledContainerColor = Color(0xFF2a3454)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Place Bet")
+                        Text(
+                            "PLACE BET",
+                            fontWeight = FontWeight.Bold,
+                            color = if (!isPlaying && amount >= 10) Color.Black else Color(0xFF4a5268)
+                        )
                     }
                 }
                 !isPlaying -> {
                     Button(
                         onClick = onCancelBet,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFf44336)
-                        )
+                            containerColor = Color(0xFF2a3454)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Cancel Bet")
+                        Text(
+                            "CANCEL BET",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFff4757)
+                        )
                     }
                 }
                 activeBet.cashedOut -> {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF4CAF50)
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF00ff88).copy(alpha = 0.2f),
+                                        Color(0xFF00ff88).copy(alpha = 0.1f)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = Color(0xFF00ff88),
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "Won: ${activeBet.getWinAmount()} at ${activeBet.cashOutMultiplier?.formatMultiplier()}",
-                            modifier = Modifier.padding(12.dp),
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "WON ${activeBet.getWinAmount()} COINS",
+                                color = Color(0xFF00ff88),
+                                fontWeight = FontWeight.Black,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                "at ${activeBet.cashOutMultiplier?.formatMultiplier()}",
+                                color = Color(0xFF00ff88).copy(alpha = 0.7f),
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
                 else -> {
+                    val potentialWin = (activeBet.amount * currentMultiplier).toInt()
+
                     Button(
                         onClick = onCashOut,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF9800)
-                        )
+                            containerColor = Color(0xFFffd700)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Column {
-                            Text("Cash Out", fontWeight = FontWeight.Bold)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
-                                "${(activeBet.amount * currentMultiplier).toInt()}",
-                                fontSize = 12.sp
+                                "CASH OUT",
+                                fontWeight = FontWeight.Black,
+                                color = Color.Black,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                "$potentialWin",
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                fontSize = 18.sp
                             )
                         }
                     }

@@ -56,8 +56,9 @@ class GameRepository @Inject constructor(
     }
 
     fun updateMultiplier(multiplier: Float): Boolean {
-        // Random crash chance
-        val shouldCrash = Random.nextFloat() < Constants.CRASH_PROBABILITY
+        // Используем динамическую вероятность краша
+        val crashProbability = Constants.getCrashProbability(multiplier)
+        val shouldCrash = Random.nextFloat() < crashProbability
 
         if (shouldCrash || multiplier >= Constants.MAX_MULTIPLIER) {
             crash()

@@ -1,7 +1,7 @@
 package com.mycompany.aviatorgame.data.model
 
 import kotlinx.serialization.Serializable
-
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 @Serializable
 data class GameState(
     val balance: Int = 2000,
