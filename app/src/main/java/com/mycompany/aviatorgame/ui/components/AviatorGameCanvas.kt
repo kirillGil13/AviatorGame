@@ -13,10 +13,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mycompany.aviatorgame.R
 import kotlin.math.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -28,8 +31,9 @@ fun AviatorGameCanvas(
     isCrashed: Boolean
 ) {
     val textMeasurer = rememberTextMeasurer()
+    val airplanePainter = painterResource(id = R.drawable.ic_aviator)
 
-    // Анимация фоновых элементов
+    // Анимация звезд на фоне
     val infiniteTransition = rememberInfiniteTransition(label = "background")
 
     val starAnimation by infiniteTransition.animateFloat(
@@ -42,15 +46,22 @@ fun AviatorGameCanvas(
         label = "stars"
     )
 
-    val gridAnimation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 50f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "grid"
-    )
+    // Анимация улета самолета при краше
+    var flyAwayProgress by remember { mutableStateOf(0f) }
+
+    LaunchedEffect(isCrashed) {
+        if (isCrashed) {
+            animate(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = tween(500, easing = FastOutSlowInEasing)
+            ) { value, _ ->
+                flyAwayProgress = value
+            }
+        } else {
+            flyAwayProgress = 0f
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Canvas(
@@ -59,59 +70,63 @@ fun AviatorGameCanvas(
             val width = size.width
             val height = size.height
 
-            // Рисуем сетку на фоне
-            drawGrid(gridAnimation, width, height)
+            // Фоновая сетка (статичная)
+            drawStaticGrid(width, height)
 
-            // Рисуем звезды на фоне
+            // Звезды на фоне
             drawStars(starAnimation, width, height)
 
-            // Рисуем шкалу множителей слева
-            drawMultiplierScale(textMeasurer, height)
-
-            // Рисуем траекторию полета
+            // Основная игровая зона
             if (isPlaying || isCrashed) {
                 val progress = (multiplier - 1f).coerceIn(0f, 99f) / 99f
-                drawFlightPath(width, height, progress, isCrashed)
 
-                // Рисуем самолет
-                if (!isCrashed || progress < 0.98f) {
-                    drawAirplane(width, height, progress, isCrashed)
-                }
-            }
+                // Рисуем дугу-радар (красную расходящуюся)
+                drawRadarArc(width, height, progress, isCrashed)
 
-            // Рисуем эффект краша
-            if (isCrashed) {
-                drawCrashEffect(width, height, (multiplier - 1f) / 99f)
+                // Рисуем след от самолета
+                drawPlaneTrail(width, height, progress, isCrashed)
+
+                // Рисуем самолет с изображением
+                drawAirplaneImage(
+                    painter = airplanePainter,
+                    width = width,
+                    height = height,
+                    progress = progress,
+                    isCrashed = isCrashed,
+                    flyAwayProgress = flyAwayProgress
+                )
+            } else {
+                // Самолет на старте (неподвижно)
+                drawAirplaneAtStart(airplanePainter, width, height)
             }
         }
     }
 }
 
-fun DrawScope.drawGrid(animation: Float, width: Float, height: Float) {
+fun DrawScope.drawStaticGrid(width: Float, height: Float) {
     val gridSize = 50f
-    val lineColor = Color(0xFF1a2547).copy(alpha = 0.3f)
+    val lineColor = Color(0xFF1a2547).copy(alpha = 0.2f)
 
     // Вертикальные линии
-    var x = animation % gridSize
+    var x = 0f
     while (x < width) {
         drawLine(
             color = lineColor,
             start = Offset(x, 0f),
             end = Offset(x, height),
-            strokeWidth = 1f
+            strokeWidth = 0.5f
         )
         x += gridSize
     }
 
     // Горизонтальные линии
-    var y = animation % gridSize
+    var y = 0f
     while (y < height) {
         drawLine(
             color = lineColor,
             start = Offset(0f, y),
             end = Offset(width, y),
-            strokeWidth = 1f,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 5f))
+            strokeWidth = 0.5f
         )
         y += gridSize
     }
@@ -119,238 +134,237 @@ fun DrawScope.drawGrid(animation: Float, width: Float, height: Float) {
 
 fun DrawScope.drawStars(animation: Float, width: Float, height: Float) {
     val starPositions = listOf(
-        Offset(width * 0.1f, height * 0.2f),
-        Offset(width * 0.3f, height * 0.1f),
-        Offset(width * 0.5f, height * 0.15f),
-        Offset(width * 0.7f, height * 0.25f),
-        Offset(width * 0.9f, height * 0.1f),
-        Offset(width * 0.2f, height * 0.35f),
-        Offset(width * 0.8f, height * 0.3f),
-        Offset(width * 0.6f, height * 0.05f),
+        Offset(width * 0.15f, height * 0.2f),
+        Offset(width * 0.35f, height * 0.1f),
+        Offset(width * 0.55f, height * 0.25f),
+        Offset(width * 0.75f, height * 0.15f),
+        Offset(width * 0.85f, height * 0.3f),
+        Offset(width * 0.25f, height * 0.35f),
+        Offset(width * 0.65f, height * 0.05f),
+        Offset(width * 0.45f, height * 0.4f),
     )
 
     starPositions.forEachIndexed { index, position ->
-        val alpha = ((sin(animation * 6.28f + index) + 1f) / 2f * 0.5f + 0.2f)
+        val alpha = ((sin(animation * 6.28f + index * 0.8f) + 1f) / 2f * 0.4f + 0.2f)
+
+        // Звезда
         drawCircle(
             color = Color.White.copy(alpha = alpha),
-            radius = 2f,
+            radius = 1.5f,
             center = position
         )
 
-        // Свечение
+        // Свечение звезды
         drawCircle(
-            color = Color(0xFF00d4ff).copy(alpha = alpha * 0.3f),
-            radius = 4f,
+            color = Color.White.copy(alpha = alpha * 0.3f),
+            radius = 3f,
             center = position
         )
     }
 }
 
-@OptIn(ExperimentalTextApi::class)
-fun DrawScope.drawMultiplierScale(textMeasurer: TextMeasurer, height: Float) {
-    val multipliers = listOf(100f, 50f, 20f, 10f, 5f, 3f, 2f, 1.5f, 1.2f, 1f)
-    val scaleX = 50f
+fun DrawScope.drawRadarArc(width: Float, height: Float, progress: Float, isCrashed: Boolean) {
+    val startX = width * 0.15f  // Начало слева
+    val startY = height * 0.75f  // Начало внизу
 
-    multipliers.forEach { mult ->
-        val y = height - (height * 0.8f * ((mult - 1f) / 99f)) - height * 0.1f
-
-        // Линия
-        drawLine(
-            color = Color(0xFF3a4560),
-            start = Offset(scaleX - 10f, y),
-            end = Offset(scaleX + 10f, y),
-            strokeWidth = 1f
-        )
-
-        // Текст
-        val textLayoutResult = textMeasurer.measure(
-            text = AnnotatedString("${mult}x"),
-            style = TextStyle(
-                color = Color(0xFF6a7490),
-                fontSize = 10.sp
-            )
-        )
-
-        drawText(
-            textLayoutResult = textLayoutResult,
-            topLeft = Offset(scaleX - 35f, y - textLayoutResult.size.height / 2)
-        )
+    // Цвет дуги
+    val arcColor = if (isCrashed) {
+        Color(0xFFff4444).copy(alpha = 0.8f)
+    } else {
+        Color(0xFFff4444).copy(alpha = 0.6f)
     }
-}
 
-fun DrawScope.drawFlightPath(width: Float, height: Float, progress: Float, isCrashed: Boolean) {
+    // Рисуем расходящийся веер/радар
     val path = Path()
-    val startX = width * 0.1f
-    val startY = height * 0.85f
 
+    // Начальная точка
     path.moveTo(startX, startY)
 
-    // Рисуем параболическую траекторию
-    val steps = 100
-    val currentSteps = (steps * progress).toInt()
+    // Верхняя линия веера
+    val topEndX = startX + (width * 0.7f * progress)
+    val topEndY = startY - (height * 0.6f * progress)
+    path.lineTo(topEndX, topEndY - (progress * 30f)) // Расходится вверх
 
-    for (i in 1..currentSteps) {
-        val t = i.toFloat() / steps
-        val x = startX + (width * 0.8f * t)
-        // Парабола: y = ax² + bx + c (перевернутая)
-        val y = startY - (height * 0.7f * t * (2 - t * 0.5f))
-        path.lineTo(x, y)
-    }
-
-    // Основная линия траектории
-    drawPath(
-        path = path,
-        color = if (isCrashed) Color(0xFFff4757) else Color(0xFF00ff88),
-        style = Stroke(
-            width = 3f,
-            cap = StrokeCap.Round
-        )
-    )
-
-    // Свечение траектории
-    drawPath(
-        path = path,
-        color = if (isCrashed) Color(0xFFff4757).copy(alpha = 0.3f) else Color(0xFF00ff88).copy(alpha = 0.3f),
-        style = Stroke(
-            width = 8f,
-            cap = StrokeCap.Round
-        )
-    )
-
-    // Эффект следа
-    if (!isCrashed && progress > 0.05f) {
-        val trailPath = Path()
-        val trailStart = max(0, currentSteps - 20)
-
-        for (i in trailStart until currentSteps) {
+    // Дуга сверху
+    if (progress > 0.05f) {
+        val arcPath = Path()
+        val steps = 30
+        for (i in 0..steps) {
             val t = i.toFloat() / steps
-            val x = startX + (width * 0.8f * t)
-            val y = startY - (height * 0.7f * t * (2 - t * 0.5f))
+            val angle = -PI/4 - (PI/6 * progress) + t * (PI/3 + PI/3 * progress)
+            val radius = width * 0.7f * progress
+            val x = startX + cos(angle).toFloat() * radius
+            val y = startY + sin(angle).toFloat() * radius
 
-            if (i == trailStart) {
-                trailPath.moveTo(x, y)
+            if (i == 0) {
+                arcPath.moveTo(x, y)
             } else {
-                trailPath.lineTo(x, y)
+                arcPath.lineTo(x, y)
             }
         }
 
         drawPath(
-            path = trailPath,
-            brush = Brush.horizontalGradient(
+            path = arcPath,
+            color = arcColor,
+            style = Stroke(width = 2f)
+        )
+    }
+
+    // Нижняя линия веера
+    path.moveTo(startX, startY)
+    val bottomEndX = startX + (width * 0.7f * progress)
+    val bottomEndY = startY - (height * 0.4f * progress)
+    path.lineTo(bottomEndX, bottomEndY + (progress * 20f)) // Расходится вниз
+
+    // Рисуем основные линии
+    drawPath(
+        path = path,
+        color = arcColor,
+        style = Stroke(width = 2f)
+    )
+
+    // Заливка внутри веера (полупрозрачная)
+    if (progress > 0.05f) {
+        val fillPath = Path()
+        fillPath.moveTo(startX, startY)
+
+        // Создаем веер
+        for (i in 0..20) {
+            val t = i / 20f
+            val angle = -PI/4 - (PI/6 * progress) + t * (PI/3 + PI/3 * progress)
+            val radius = width * 0.7f * progress
+            val x = startX + cos(angle).toFloat() * radius
+            val y = startY + sin(angle).toFloat() * radius
+            fillPath.lineTo(x, y)
+        }
+
+        fillPath.close()
+
+        drawPath(
+            path = fillPath,
+            brush = Brush.radialGradient(
                 colors = listOf(
-                    Color.Transparent,
-                    Color(0xFF00d4ff).copy(alpha = 0.5f)
-                )
-            ),
-            style = Stroke(
-                width = 15f,
-                cap = StrokeCap.Round
+                    arcColor.copy(alpha = 0.1f),
+                    arcColor.copy(alpha = 0.02f)
+                ),
+                center = Offset(startX, startY)
             )
         )
     }
 }
 
-fun DrawScope.drawAirplane(width: Float, height: Float, progress: Float, isCrashed: Boolean) {
-    val startX = width * 0.1f
-    val startY = height * 0.85f
+fun DrawScope.drawPlaneTrail(width: Float, height: Float, progress: Float, isCrashed: Boolean) {
+    if (progress < 0.02f) return
+
+    val startX = width * 0.15f
+    val startY = height * 0.75f
+
+    val path = Path()
+    path.moveTo(startX, startY)
+
+    // Рисуем след по параболической траектории
+    val steps = (100 * progress).toInt()
+    for (i in 1..steps) {
+        val t = i.toFloat() / 100
+        val x = startX + (width * 0.7f * t)
+        val y = startY - (height * 0.5f * t * sqrt(1 + t))
+        path.lineTo(x, y)
+    }
+
+    // След самолета - белая линия
+    drawPath(
+        path = path,
+        color = Color.White.copy(alpha = 0.8f),
+        style = Stroke(
+            width = 2f,
+            cap = StrokeCap.Round
+        )
+    )
+
+    // Свечение следа
+    drawPath(
+        path = path,
+        color = Color.White.copy(alpha = 0.2f),
+        style = Stroke(
+            width = 6f,
+            cap = StrokeCap.Round
+        )
+    )
+}
+
+fun DrawScope.drawAirplaneAtStart(painter: androidx.compose.ui.graphics.painter.Painter, width: Float, height: Float) {
+    val planeX = width * 0.15f
+    val planeY = height * 0.75f
+
+    drawAirplaneWithImage(painter, planeX, planeY, 0f)
+}
+
+fun DrawScope.drawAirplaneImage(
+    painter: androidx.compose.ui.graphics.painter.Painter,
+    width: Float,
+    height: Float,
+    progress: Float,
+    isCrashed: Boolean,
+    flyAwayProgress: Float
+) {
+    val startX = width * 0.15f
+    val startY = height * 0.75f
 
     // Позиция самолета на параболе
-    val planeX = startX + (width * 0.8f * progress)
-    val planeY = startY - (height * 0.7f * progress * (2 - progress * 0.5f))
+    var planeX = startX + (width * 0.7f * progress)
+    var planeY = startY - (height * 0.5f * progress * sqrt(1 + progress))
 
-    // Угол наклона самолета (касательная к параболе)
-    val angle = atan(height * 0.7f * (2 - progress) / (width * 0.8f)) * 180 / PI
+    // При краше самолет быстро улетает вверх и вправо
+    if (isCrashed && flyAwayProgress > 0) {
+        planeX += width * 0.3f * flyAwayProgress
+        planeY -= height * 0.5f * flyAwayProgress
+    }
 
+    // Угол наклона (тангенс к траектории)
+    val angle = if (isCrashed && flyAwayProgress > 0.5f) {
+        -45f // Резкий взлет вверх
+    } else {
+        val dx = 0.01f
+        val y1 = height * 0.5f * progress * sqrt(1 + progress)
+        val y2 = height * 0.5f * (progress + dx) * sqrt(1 + progress + dx)
+        -atan2(y2 - y1, width * 0.7f * dx) * 180 / PI.toFloat()
+    }
+
+    // Рисуем самолет только если он не улетел
+    if (flyAwayProgress < 0.9f) {
+        drawAirplaneWithImage(painter, planeX, planeY, angle)
+    }
+}
+
+fun DrawScope.drawAirplaneWithImage(
+    painter: androidx.compose.ui.graphics.painter.Painter,
+    x: Float,
+    y: Float,
+    angle: Float
+) {
     drawIntoCanvas { canvas ->
         canvas.save()
-        canvas.translate(planeX, planeY)
-        canvas.rotate(angle.toFloat())
 
-        // Рисуем стилизованный самолет
-        val planeSize = 40f
+        // Размер самолета
+        val planeWidth = 200f
+        val planeHeight = 170f
 
-        // Тело самолета
-        drawPath(
-            path = Path().apply {
-                moveTo(-planeSize / 2, 0f)
-                lineTo(planeSize / 2, -2f)
-                lineTo(planeSize / 2, 2f)
-                lineTo(-planeSize / 2, 3f)
-                close()
-            },
-            color = if (isCrashed) Color(0xFFff4757) else Color.White
-        )
+        // Перемещаем и поворачиваем
+        canvas.translate(x, y)
+        canvas.rotate(angle)
 
-        // Крылья
-        drawPath(
-            path = Path().apply {
-                moveTo(-planeSize / 4, 0f)
-                lineTo(0f, -planeSize / 3)
-                lineTo(planeSize / 4, 0f)
-                lineTo(0f, planeSize / 4)
-                close()
-            },
-            color = if (isCrashed) Color(0xFFff4757) else Color(0xFF00d4ff)
-        )
-
-        // Хвост
-        drawPath(
-            path = Path().apply {
-                moveTo(-planeSize / 2, 0f)
-                lineTo(-planeSize / 2 - 5, -planeSize / 4)
-                lineTo(-planeSize / 2 - 3, 0f)
-                close()
-            },
-            color = if (isCrashed) Color(0xFFff4757) else Color(0xFF00ff88)
-        )
-
-        // Свечение самолета
-        if (!isCrashed) {
-            drawCircle(
-                color = Color(0xFF00d4ff).copy(alpha = 0.3f),
-                radius = planeSize / 2,
-                center = Offset(0f, 0f)
-            )
+        // Рисуем изображение самолета
+        translate(
+            left = -planeWidth / 2,
+            top = -planeHeight / 2
+        ) {
+            with(painter) {
+                draw(
+                    size = Size(planeWidth, planeHeight)
+                )
+            }
         }
 
         canvas.restore()
     }
-}
-
-fun DrawScope.drawCrashEffect(width: Float, height: Float, progress: Float) {
-    val startX = width * 0.1f
-    val startY = height * 0.85f
-
-    val crashX = startX + (width * 0.8f * progress)
-    val crashY = startY - (height * 0.7f * progress * (2 - progress * 0.5f))
-
-    // Эффект взрыва
-    for (i in 0..8) {
-        val angle = (i * 40f) * PI / 180
-        val length = 30f + (i % 2) * 20f
-
-        drawLine(
-            color = Color(0xFFff4757),
-            start = Offset(crashX, crashY),
-            end = Offset(
-                crashX + (cos(angle) * length).toFloat(),
-                crashY + (sin(angle) * length).toFloat()
-            ),
-            strokeWidth = 3f,
-            cap = StrokeCap.Round
-        )
-    }
-
-    // Круг взрыва
-    drawCircle(
-        color = Color(0xFFff4757).copy(alpha = 0.3f),
-        radius = 40f,
-        center = Offset(crashX, crashY)
-    )
-
-    drawCircle(
-        color = Color(0xFFffa502).copy(alpha = 0.2f),
-        radius = 60f,
-        center = Offset(crashX, crashY)
-    )
 }

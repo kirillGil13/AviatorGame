@@ -121,35 +121,36 @@ fun GameScreen(
                             .align(Alignment.Center)
                             .offset(y = (-50).dp)
                     ) {
-                        Text(
-                            text = if (gameState.isCrashed) {
-                                "FLEW AWAY!"
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (gameState.isCrashed) {
+                                Text(
+                                    "FLEW AWAY!",
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFff4757)
+                                )
+                                Text(
+                                    gameState.currentMultiplier.formatMultiplier(),
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFff4757).copy(alpha = 0.7f)
+                                )
                             } else {
-                                gameState.currentMultiplier.formatMultiplier()
-                            },
-                            fontSize = if (gameState.isCrashed) 32.sp else 48.sp,
-                            fontWeight = FontWeight.Black,
-                            color = if (gameState.isCrashed) {
-                                Color(0xFFff4757)
-                            } else {
-                                when {
-                                    gameState.currentMultiplier < 2f -> Color(0xFF00d4ff)
-                                    gameState.currentMultiplier < 5f -> Color(0xFF00ff88)
-                                    else -> Color(0xFFffd700)
-                                }
+                                Text(
+                                    gameState.currentMultiplier.formatMultiplier(),
+                                    fontSize = 56.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = when {
+                                        gameState.currentMultiplier < 2f -> Color.White
+                                        gameState.currentMultiplier < 5f -> Color(0xFF00ff88)
+                                        gameState.currentMultiplier < 10f -> Color(0xFFffd700)
+                                        else -> Color(0xFFff9500)
+                                    }
+                                )
                             }
-                        )
-                    }
-
-                    if (gameState.isCrashed) {
-                        Text(
-                            text = "@ ${gameState.currentMultiplier.formatMultiplier()}",
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(y = (-10).dp),
-                            fontSize = 24.sp,
-                            color = Color(0xFFff4757)
-                        )
+                        }
                     }
                 } else {
                     Box(
@@ -159,14 +160,17 @@ fun GameScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "Waiting for bets",
+                                "Waiting for next round",
                                 fontSize = 24.sp,
-                                color = Color.White.copy(alpha = 0.5f)
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontWeight = FontWeight.Medium
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                "Place your bets and press START",
-                                fontSize = 16.sp,
-                                color = Color.White.copy(alpha = 0.3f)
+                                "Place your bets!",
+                                fontSize = 18.sp,
+                                color = Color(0xFF00ff88).copy(alpha = 0.8f),
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -205,7 +209,12 @@ fun GameScreen(
                             onHalve = viewModel::halveBet1
                         )
                     }
+                }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     // Bet 2
                     Box(modifier = Modifier.weight(1f)) {
                         BetControl(

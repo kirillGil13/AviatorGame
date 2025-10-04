@@ -232,19 +232,34 @@ fun BetControl(
                         onClick = onPlaceBet,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .height(52.dp),
                         enabled = !isPlaying && amount >= 10,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF00d4ff),
+                            containerColor = if (!isPlaying && amount >= 10)
+                                Color(0xFF00c851) else Color(0xFF2a3454),
                             disabledContainerColor = Color(0xFF2a3454)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(
-                            "PLACE BET",
-                            fontWeight = FontWeight.Bold,
-                            color = if (!isPlaying && amount >= 10) Color.Black else Color(0xFF4a5268)
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "BET",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (!isPlaying && amount >= 10)
+                                    Color.White else Color(0xFF4a5268),
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                "$amount",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (!isPlaying && amount >= 10)
+                                    Color.White.copy(alpha = 0.9f) else Color(0xFF4a5268)
+                            )
+                        }
                     }
                 }
                 !isPlaying -> {
@@ -252,59 +267,87 @@ fun BetControl(
                         onClick = onCancelBet,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .height(52.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2a3454)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(
-                            "CANCEL BET",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFff4757)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("✕", fontSize = 18.sp, color = Color(0xFFff4757))
+                            Text(
+                                "CANCEL",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFff4757),
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
                 activeBet.cashedOut -> {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .height(52.dp)
                             .background(
-                                brush = Brush.horizontalGradient(
+                                brush = Brush.verticalGradient(
                                     colors = listOf(
-                                        Color(0xFF00ff88).copy(alpha = 0.2f),
-                                        Color(0xFF00ff88).copy(alpha = 0.1f)
+                                        Color(0xFF00c851).copy(alpha = 0.15f),
+                                        Color(0xFF00c851).copy(alpha = 0.05f)
                                     )
                                 ),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 width = 2.dp,
-                                color = Color(0xFF00ff88),
-                                shape = RoundedCornerShape(12.dp)
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF00c851),
+                                        Color(0xFF00c851).copy(alpha = 0.5f)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(8.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                "WON ${activeBet.getWinAmount()} COINS",
-                                color = Color(0xFF00ff88),
-                                fontWeight = FontWeight.Black,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                "at ${activeBet.cashOutMultiplier?.formatMultiplier()}",
-                                color = Color(0xFF00ff88).copy(alpha = 0.7f),
-                                fontSize = 12.sp
-                            )
+                            Text("✓", fontSize = 20.sp, color = Color(0xFF00c851))
+                            Column {
+                                Text(
+                                    "+${activeBet.getWinAmount()}",
+                                    color = Color(0xFF00c851),
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 16.sp
+                                )
+                                Text(
+                                    "${activeBet.cashOutMultiplier?.formatMultiplier()}",
+                                    color = Color(0xFF00c851).copy(alpha = 0.7f),
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
                 else -> {
                     val potentialWin = (activeBet.amount * currentMultiplier).toInt()
+
+                    // Анимация пульсации для кнопки Cash Out
+                    val infiniteTransition = rememberInfiniteTransition(label = "cashout")
+                    val scale by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 1.05f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(500),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "scale"
+                    )
 
                     Button(
                         onClick = onCashOut,
@@ -312,9 +355,9 @@ fun BetControl(
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFffd700)
+                            containerColor = Color(0xFFff6b00)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -322,14 +365,20 @@ fun BetControl(
                             Text(
                                 "CASH OUT",
                                 fontWeight = FontWeight.Black,
-                                color = Color.Black,
-                                fontSize = 14.sp
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                letterSpacing = 1.sp
                             )
                             Text(
                                 "$potentialWin",
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                fontSize = 18.sp
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                fontSize = 20.sp
+                            )
+                            Text(
+                                currentMultiplier.formatMultiplier(),
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.8f)
                             )
                         }
                     }
