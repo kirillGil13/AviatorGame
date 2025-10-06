@@ -88,6 +88,8 @@ dependencies {
     // Animation
     implementation("androidx.compose.animation:animation-graphics:1.5.4")
 
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

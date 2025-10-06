@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mycompany.aviatorgame.data.local.BillingManager
 import com.mycompany.aviatorgame.data.model.ShopItem
+import com.mycompany.aviatorgame.ui.theme.DarkBackground
 import com.mycompany.aviatorgame.utils.formatCoins
 
 @Composable
@@ -30,13 +30,11 @@ fun ShopScreen(
     val context = LocalContext.current
     val activity = context as Activity
     val purchaseState by viewModel.purchaseState.collectAsState()
-    val currentPurchaseState = purchaseState
 
-    // Handle purchase state
     LaunchedEffect(purchaseState) {
-        when (currentPurchaseState) {
+        when (val state = purchaseState) {
             is BillingManager.PurchaseState.Success -> {
-                viewModel.handlePurchaseSuccess(currentPurchaseState.coins)
+                viewModel.handlePurchaseSuccess(state.coins)
             }
             else -> {}
         }
@@ -45,14 +43,7 @@ fun ShopScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1a1a2e),
-                        Color(0xFF0f0f1e)
-                    )
-                )
-            )
+            .background(DarkBackground)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -66,12 +57,12 @@ fun ShopScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = onBackClick) {
-                    Text("◀ Back", color = Color.White)
+                    Text("◀ Back", color = Color.White.copy(alpha = 0.7f))
                 }
 
                 Text(
                     "SHOP",
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
@@ -90,7 +81,7 @@ fun ShopScreen(
                     Text(
                         "Get more coins to keep playing!",
                         color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -115,7 +106,7 @@ fun ShopScreen(
         }
 
         // Purchase status
-        when (currentPurchaseState) {
+        when (val state = purchaseState) {
             is BillingManager.PurchaseState.Processing -> {
                 Box(
                     modifier = Modifier
@@ -123,22 +114,22 @@ fun ShopScreen(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = Color(0xFF00d47e))
                 }
             }
             is BillingManager.PurchaseState.Error -> {
                 AlertDialog(
                     onDismissRequest = viewModel::resetPurchaseState,
-                    containerColor = Color(0xFF2a2a3e),
+                    containerColor = Color(0xFF242938),
                     title = {
                         Text("Purchase Failed", color = Color.White)
                     },
                     text = {
-                        Text(currentPurchaseState.message, color = Color.White)
+                        Text(state.message, color = Color.White.copy(alpha = 0.8f))
                     },
                     confirmButton = {
                         TextButton(onClick = viewModel::resetPurchaseState) {
-                            Text("OK", color = Color(0xFF4CAF50))
+                            Text("OK", color = Color(0xFF00d47e))
                         }
                     }
                 )
@@ -146,7 +137,7 @@ fun ShopScreen(
             is BillingManager.PurchaseState.Success -> {
                 AlertDialog(
                     onDismissRequest = viewModel::resetPurchaseState,
-                    containerColor = Color(0xFF2a2a3e),
+                    containerColor = Color(0xFF242938),
                     title = {
                         Text("Purchase Successful!", color = Color.White)
                     },
@@ -154,20 +145,20 @@ fun ShopScreen(
                         Column {
                             Text(
                                 "🎉",
-                                fontSize = 48.sp,
+                                fontSize = 40.sp,
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
                             Text(
-                                "You received ${currentPurchaseState.coins.formatCoins()} coins!",
-                                color = Color.White,
+                                "You received ${state.coins.formatCoins()} coins!",
+                                color = Color.White.copy(alpha = 0.8f),
                                 textAlign = TextAlign.Center
                             )
                         }
                     },
                     confirmButton = {
                         TextButton(onClick = viewModel::resetPurchaseState) {
-                            Text("Awesome!", color = Color(0xFF4CAF50))
+                            Text("Awesome!", color = Color(0xFF00d47e))
                         }
                     }
                 )
@@ -186,7 +177,7 @@ fun ShopItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2a2a3e)
+            containerColor = Color(0xFF242938)
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -197,29 +188,27 @@ fun ShopItemCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "💰",
+                    fontSize = 32.sp
+                )
+                Column {
                     Text(
-                        "💰",
-                        fontSize = 32.sp
+                        item.getTotalCoins().formatCoins(),
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    Column {
+                    if (item.bonus > 0) {
                         Text(
-                            item.getTotalCoins().formatCoins(),
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+                            "+${item.bonus}% bonus",
+                            color = Color(0xFF00d47e),
+                            fontSize = 12.sp
                         )
-                        if (item.bonus > 0) {
-                            Text(
-                                "+${item.bonus}% bonus",
-                                color = Color(0xFF4CAF50),
-                                fontSize = 14.sp
-                            )
-                        }
                     }
                 }
             }
@@ -228,13 +217,15 @@ fun ShopItemCard(
                 onClick = onPurchase,
                 enabled = !isProcessing,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50)
-                )
+                    containerColor = Color(0xFF00d47e)
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
                     item.price,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 16.sp,
+                    color = Color.White
                 )
             }
         }

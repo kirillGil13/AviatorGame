@@ -12,7 +12,17 @@ object Constants {
     // Вероятность краша увеличивается с множителем
     // Базовая вероятность низкая, но растет экспоненциально
     fun getCrashProbability(multiplier: Float): Float {
-        return 0.01f
+//        return when {
+//            multiplier < 1.5f -> 0.1f  // 1% для x1.0-1.5
+//            multiplier < 2f -> 0.15f    // 2% для x1.5-2.0
+//            multiplier < 3f -> 0.20f    // 3% для x2.0-3.0
+//            multiplier < 5f -> 0.30f    // 5% для x3.0-5.0
+//            multiplier < 10f -> 0.40f   // 8% для x5.0-10.0
+//            multiplier < 20f -> 0.50f   // 12% для x10.0-20.0
+//            multiplier < 50f -> 0.60f   // 20% для x20.0-50.0
+//            else -> 0.70f                // 35% для x50.0+
+//        }
+        return 0.001f
     }
 
     // Скорость роста множителя (увеличивается со временем)

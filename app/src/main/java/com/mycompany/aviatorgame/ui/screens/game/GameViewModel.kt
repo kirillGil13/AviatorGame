@@ -59,6 +59,25 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    // Принудительное завершение игры (при уходе с экрана)
+    fun forceGameEnd() {
+        gameJob?.cancel()
+        gameJob = null
+
+        // ВСЕГДА полностью сбрасываем игру при уходе с экрана
+        repository.resetCrashState()
+    }
+
+    // Отметить что анимация краша была проиграна
+    fun markCrashAnimationPlayed() {
+        repository.markCrashAnimationPlayed()
+    }
+
+    // Сбросить состояние краша
+    fun resetCrashState() {
+        repository.resetCrashState()
+    }
+
     fun placeBet1() {
         repository.placeBet(_bet1Amount.value, _bet1AutoCashOut.value)
     }

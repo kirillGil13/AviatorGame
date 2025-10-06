@@ -50,7 +50,9 @@ class GameRepository @Inject constructor(
             it.copy(
                 isPlaying = true,
                 isCrashed = false,
-                currentMultiplier = 1.0f
+                currentMultiplier = 1.0f,
+                roundId = it.roundId + 1, // Инкрементируем ID раунда
+                shouldPlayCrashAnimation = false // Сбрасываем флаг анимации
             )
         }
     }
@@ -89,10 +91,32 @@ class GameRepository @Inject constructor(
             it.copy(
                 isPlaying = false,
                 isCrashed = true,
+                activeBets = emptyList(),
+                shouldPlayCrashAnimation = true // Устанавливаем флаг для проигрывания анимации
+            )
+        }
+    }
+
+    // Метод для сброса флага анимации после её проигрывания
+    fun markCrashAnimationPlayed() {
+        _gameState.update {
+            it.copy(shouldPlayCrashAnimation = false)
+        }
+    }
+
+    // Полный сброс состояния краша (используется при уходе с экрана)
+    fun resetCrashState() {
+        _gameState.update {
+            it.copy(
+                isPlaying = false,
+                isCrashed = false,
+                shouldPlayCrashAnimation = false,
+                currentMultiplier = 1.0f,
                 activeBets = emptyList()
             )
         }
     }
+
     fun placeBet(amount: Int, autoCashOut: Float? = null): Boolean {
         val state = _gameState.value
         if (state.isPlaying) return false
