@@ -3,9 +3,12 @@ package com.mycompany.aviatorgame.ui.screens.shop
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +22,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mycompany.aviatorgame.data.local.BillingManager
 import com.mycompany.aviatorgame.data.model.ShopItem
+import com.mycompany.aviatorgame.ui.theme.ButtonCta
+import com.mycompany.aviatorgame.ui.theme.ButtonPrimary
+import com.mycompany.aviatorgame.ui.theme.ButtonTertiaryText
+import com.mycompany.aviatorgame.ui.theme.CardBackground
 import com.mycompany.aviatorgame.ui.theme.DarkBackground
 import com.mycompany.aviatorgame.utils.formatCoins
 
@@ -56,26 +63,41 @@ fun ShopScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onBackClick) {
-                    Text("◀ Back", color = Color.White.copy(alpha = 0.7f))
+                TextButton(
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = ButtonTertiaryText,
+                    ),
+                    onClick = onBackClick
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.KeyboardArrowLeft,
+                            contentDescription = "Back",
+                        )
+
+                        Text("Back", color = Color.White.copy(alpha = 0.7f))
+                    }
                 }
-
-                Text(
-                    "SHOP",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.width(48.dp))
             }
+
+            Text(
+                "Shop",
+                color = Color.White,
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
 
             // Shop Items
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
                     Text(
@@ -177,7 +199,7 @@ fun ShopItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF242938)
+            containerColor = CardBackground
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -206,7 +228,7 @@ fun ShopItemCard(
                     if (item.bonus > 0) {
                         Text(
                             "+${item.bonus}% bonus",
-                            color = Color(0xFF00d47e),
+                            color = ButtonCta,
                             fontSize = 12.sp
                         )
                     }
@@ -217,7 +239,7 @@ fun ShopItemCard(
                 onClick = onPurchase,
                 enabled = !isProcessing,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00d47e)
+                    containerColor = ButtonPrimary
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {

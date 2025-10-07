@@ -110,7 +110,7 @@ fun GameScreen(
                         modifier = Modifier.padding(end = 8.dp).height(35.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("DEPOSIT", color = ButtonSecondaryText, fontWeight = FontWeight.Bold)
+                        Text("SHOP", color = ButtonSecondaryText, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

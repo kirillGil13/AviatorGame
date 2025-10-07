@@ -79,11 +79,11 @@ class GameViewModel @Inject constructor(
     }
 
     fun placeBet1() {
-        repository.placeBet(_bet1Amount.value, _bet1AutoCashOut.value)
+        repository.placeBet(1, _bet1Amount.value, _bet1AutoCashOut.value)
     }
 
     fun placeBet2() {
-        repository.placeBet(_bet2Amount.value, _bet2AutoCashOut.value)
+        repository.placeBet(2, _bet2Amount.value, _bet2AutoCashOut.value)
     }
 
     fun cancelBet(betId: Int) {

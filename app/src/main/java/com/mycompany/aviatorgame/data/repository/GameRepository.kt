@@ -117,15 +117,17 @@ class GameRepository @Inject constructor(
         }
     }
 
-    fun placeBet(amount: Int, autoCashOut: Float? = null): Boolean {
+    fun placeBet(betId: Int, amount: Int, autoCashOut: Float? = null): Boolean {
         val state = _gameState.value
         if (state.isPlaying) return false
         if (amount > state.balance) return false
         if (state.activeBets.size >= 2) return false
 
-        val betId = if (state.activeBets.isEmpty()) 1 else 2
+        // Проверяем, что ставка с таким ID еще не существует
+        if (state.activeBets.any { it.id == betId }) return false
+
         val newBet = Bet(
-            id = betId,
+            id = betId, // Используем переданный ID
             amount = amount,
             autoCashOut = autoCashOut,
             isActive = true

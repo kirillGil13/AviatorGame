@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.font.FontWeight
@@ -227,11 +228,11 @@ fun MainScreen(
     if (showBonusDialog && bonusAmount != null) {
         AlertDialog(
             onDismissRequest = { showBonusDialog = false },
-            containerColor = Color(0xFF242938),
+            containerColor = CardBackground,
             title = {
                 Text(
                     "🎉 DAILY BONUS!",
-                    color = Color(0xFFffd700),
+                    color = Color(0xFFE8E8E8),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Black,
                     fontSize = 18.sp
@@ -243,15 +244,15 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        "+$bonusAmount",
+                        "+ $bonusAmount",
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFF00d47e)
+                        color = Color(0xFFffd700)
                     )
 
                     Text(
                         "COINS ADDED!",
-                        color = Color.White,
+                        color = Color(0xFFE8E8E8),
                         fontSize = 14.sp,
                         letterSpacing = 2.sp
                     )
@@ -261,8 +262,9 @@ fun MainScreen(
                 Button(
                     onClick = { showBonusDialog = false },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00d47e)
-                    )
+                        containerColor = ButtonPrimary
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("AWESOME!", color = Color.White, fontWeight = FontWeight.Bold)
                 }

@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -106,17 +110,9 @@ fun BetControl(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    val cardColor by animateColorAsState(
-        targetValue = when {
-            activeBet?.cashedOut == true -> Color(0xFF00d47e).copy(alpha = 0.15f)
-            else -> CardBackground
-        },
-        label = "card_color"
-    )
-
     val borderColor by animateColorAsState(
         targetValue = when {
-            activeBet != null && isPlaying -> Color(0xFFBA6400)
+            activeBet?.cashedOut == true -> ButtonCta
             else -> CardBackground
         },
         label = "border_color"
@@ -125,7 +121,7 @@ fun BetControl(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = cardColor
+            containerColor = CardBackground
         ),
         border = BorderStroke(1.dp, borderColor),
         shape = RoundedCornerShape(12.dp)
@@ -490,7 +486,7 @@ fun BetActionButton(
                     "CANCEL",
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    fontSize = 11.sp
+                    fontSize = 16.sp
                 )
             }
         }
@@ -498,26 +494,32 @@ fun BetActionButton(
             Box(
                 modifier = modifier
                     .background(
-                        Color(0xFF00d47e).copy(alpha = 0.2f),
+                        ButtonCta.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(
                         width = 1.5.dp,
-                        color = Color(0xFF00d47e),
+                        color = ButtonCta,
                         shape = RoundedCornerShape(8.dp)
                     ).defaultMinSize(minHeight = 108.dp, minWidth = 180.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
+                    verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text("✓", fontSize = 14.sp, color = Color(0xFF00d47e))
                     Text(
-                        "+${activeBet.getWinAmount()}",
-                        color = Color(0xFF00d47e),
+                        "🎉",
+                        fontSize = 14.sp
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        "+ ${activeBet.getWinAmount()}",
+                        color = ButtonCta,
                         fontWeight = FontWeight.Black,
-                        fontSize = 12.sp
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -530,7 +532,7 @@ fun BetActionButton(
                 modifier = modifier
                     .defaultMinSize(minHeight = 108.dp, minWidth = 180.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFff6b00)
+                    containerColor = Color(0xFFFF8A3D)
                 ),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(4.dp)
@@ -540,16 +542,16 @@ fun BetActionButton(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "CASH",
+                        "CASH OUT",
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        fontSize = 9.sp
+                        fontSize = 14.sp
                     )
                     Text(
                         "$potentialWin",
                         fontWeight = FontWeight.Black,
                         color = Color.White,
-                        fontSize = 13.sp
+                        fontSize = 16.sp
                     )
                 }
             }
