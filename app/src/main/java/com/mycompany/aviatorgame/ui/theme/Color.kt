@@ -22,6 +22,11 @@ val ButtonSecondaryText = Color(0xFFE8E8E8)
 val ButtonSecondaryDisabled = Color(0xFF1A1F2C)
 val ButtonSecondaryDisabledText = Color(0xFF4A4F5C)
 
+val ButtonCta = Color(0xFF00D26A)
+val ButtonCtaText = Color(0xFFFFFFFF)
+val ButtonCtaDisabled = Color(0xFF1A4D3B)
+val ButtonCtaDisabledText = Color(0xFF4A6B5C)
+
 val ButtonTertiaryText = Color( 0xFFA0A5B0)
 
 // Дополнительные цвета

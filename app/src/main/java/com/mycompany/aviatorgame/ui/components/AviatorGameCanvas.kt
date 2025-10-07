@@ -99,8 +99,8 @@ fun AviatorGameCanvas(
             }
         } else {
             // Самолет на старте
-            val startX = width * 0.1f
-            val planeHeight = 125f
+            val startX = width * 0.15f // Увеличили отступ от левого края
+            val planeHeight = 150f
             val borderY = height * 0.916f
             val startY = borderY - planeHeight / 2
             drawPlane(airplanePainter, startX, startY, 8f, 1f)
@@ -167,12 +167,19 @@ fun DrawScope.drawFilledTrajectory(
 ) {
     if (progress <= 0f) return
 
-    val planeWidth = 140f
-    val planeHeight = 125f
+    val planeWidth = 180f
+    val planeHeight = 150f
     val borderY = height * 0.916f
     val planeCenterY = borderY - planeHeight / 2
-    val startX = width * 0.1f - (planeWidth * 0.29f)
-    val startY = planeCenterY + (planeHeight * 0.48f)
+    val planeStartX = width * 0.15f // Соответствует новому положению самолета
+
+    // Рассчитываем точку хвоста самолета с учетом поворота на 8 градусов
+    val angleRad = Math.toRadians(8.0).toFloat()
+    val tailOffsetX = cos(angleRad) * (planeWidth / 2) // Хвост сзади по горизонтали
+    val tailOffsetY = sin(angleRad) * (planeWidth / 2) + (planeHeight * 0.35f) // С учетом поворота и вертикального смещения
+
+    val startX = planeStartX - tailOffsetX
+    val startY = planeCenterY + tailOffsetY
 
     val fillColor = Color(0xFFFF033C)
 
@@ -185,7 +192,7 @@ fun DrawScope.drawFilledTrajectory(
 
     for (i in 1..steps) {
         val t = (i.toFloat() / steps) * progress
-        val x = startX + (width * 0.85f) * t
+        val x = startX + (width * 0.8f) * t // Немного уменьшили ширину траектории
         val curveHeight = height * 0.9f
         val y = startY - curveHeight * t * sqrt(t)
 
@@ -235,13 +242,13 @@ fun DrawScope.drawAirplane(
     isCrashed: Boolean,
     flyAwayProgress: Float
 ) {
-    val startX = width * 0.1f
-    val planeHeight = 125f
+    val startX = width * 0.15f // Увеличили отступ от левого края
+    val planeHeight = 150f
     val borderY = height * 0.916f
     val startY = borderY - planeHeight / 2
 
     val t = progress.coerceIn(0f, 1f)
-    var planeX = startX + (width * 0.85f) * t
+    var planeX = startX + (width * 0.8f) * t // Соответствует новой ширине траектории
     var planeY = startY - (height * 0.9f) * t * sqrt(t)
 
     if (isCrashed && flyAwayProgress > 0) {
@@ -273,8 +280,8 @@ fun DrawScope.drawPlane(
     drawIntoCanvas { canvas ->
         canvas.save()
 
-        val planeWidth = 140f
-        val planeHeight = 125f
+        val planeWidth = 180f
+        val planeHeight = 150f
 
         canvas.translate(x, y)
         canvas.rotate(angle)
