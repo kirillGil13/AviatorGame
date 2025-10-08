@@ -2,6 +2,7 @@ package com.mycompany.aviatorgame.ui.screens.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mycompany.aviatorgame.data.local.SoundManager
 import com.mycompany.aviatorgame.data.repository.GameRepository
 import com.mycompany.aviatorgame.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
-    private val repository: GameRepository
+    private val repository: GameRepository,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     val gameState = repository.gameState
@@ -40,18 +42,21 @@ class GameViewModel @Inject constructor(
 
         repository.startRound()
 
+        // Запускаем звук самолета
+        soundManager.playAirplaneSound()
+
         gameJob = viewModelScope.launch {
             var multiplier = 1.0f
             while (multiplier < Constants.MAX_MULTIPLIER) {
                 delay(Constants.PLANE_ANIMATION_DURATION)
 
-                // Используем динамическую скорость
                 val speed = Constants.getMultiplierSpeed(multiplier)
                 multiplier += speed
 
                 val crashed = repository.updateMultiplier(multiplier)
                 if (crashed) {
-                    // Добавляем небольшую задержку для анимации краша
+                    // Плавно затухаем звук самолета при краше
+                    soundManager.fadeOutAirplaneSound(Constants.CRASH_ANIMATION_DURATION)
                     delay(Constants.CRASH_ANIMATION_DURATION)
                     break
                 }
@@ -59,21 +64,20 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    // Принудительное завершение игры (при уходе с экрана)
     fun forceGameEnd() {
         gameJob?.cancel()
         gameJob = null
 
-        // ВСЕГДА полностью сбрасываем игру при уходе с экрана
+        // Останавливаем звук самолета
+        soundManager.stopAirplaneSound()
+
         repository.resetCrashState()
     }
 
-    // Отметить что анимация краша была проиграна
     fun markCrashAnimationPlayed() {
         repository.markCrashAnimationPlayed()
     }
 
-    // Сбросить состояние краша
     fun resetCrashState() {
         repository.resetCrashState()
     }
@@ -129,5 +133,6 @@ class GameViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         gameJob?.cancel()
+        soundManager.stopAirplaneSound()
     }
 }

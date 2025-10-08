@@ -64,6 +64,8 @@ object Constants {
     const val KEY_TOTAL_WINS = "total_wins"
     const val KEY_BIGGEST_WIN = "biggest_win"
     const val KEY_TOTAL_GAMES = "total_games"
+    const val KEY_MUSIC_VOLUME = "music_volume"
+    const val KEY_SOUND_EFFECTS_VOLUME = "sound_effects_volume"
 
     // UI Animation speeds
     const val PLANE_ANIMATION_DURATION = 50L // milliseconds between updates

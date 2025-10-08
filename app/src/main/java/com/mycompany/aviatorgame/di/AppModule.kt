@@ -3,6 +3,7 @@ package com.mycompany.aviatorgame.di
 import android.content.Context
 import com.mycompany.aviatorgame.data.local.BillingManager
 import com.mycompany.aviatorgame.data.local.PreferencesManager
+import com.mycompany.aviatorgame.data.local.SoundManager
 import com.mycompany.aviatorgame.data.repository.GameRepository
 import dagger.Module
 import dagger.Provides
@@ -26,6 +27,13 @@ object AppModule {
     fun provideBillingManager(
         @ApplicationContext context: Context
     ): BillingManager = BillingManager(context)
+
+    @Provides
+    @Singleton
+    fun provideSoundManager(
+        @ApplicationContext context: Context,
+        preferencesManager: PreferencesManager
+    ): SoundManager = SoundManager(context, preferencesManager)
 
     @Provides
     @Singleton

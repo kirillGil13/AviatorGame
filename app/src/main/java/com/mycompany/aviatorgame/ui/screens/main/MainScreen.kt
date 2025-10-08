@@ -6,17 +6,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,17 +29,19 @@ import com.mycompany.aviatorgame.ui.theme.ButtonSecondary
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondaryDisabled
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondaryDisabledText
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondaryText
+import com.mycompany.aviatorgame.ui.theme.ButtonTertiaryText
 import com.mycompany.aviatorgame.ui.theme.CardBackground
 import com.mycompany.aviatorgame.ui.theme.DarkBackground
-import com.mycompany.aviatorgame.ui.theme.MainGray
 import com.mycompany.aviatorgame.utils.formatCoins
 import com.mycompany.aviatorgame.utils.isToday
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onPlayClick: () -> Unit,
     onShopClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val gameState by viewModel.gameState.collectAsState()
@@ -52,6 +54,33 @@ fun MainScreen(
             .fillMaxSize()
             .background(DarkBackground)
     ) {
+        TopAppBar(
+            title = {
+            },
+            actions = {
+                // Balance
+                // Settings Button
+                TextButton(
+                    onClick = onSettingsClick,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = ButtonTertiaryText,
+                    ),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = DarkBackground
+            )
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -150,7 +179,7 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Secondary buttons row
+            // Secondary buttons row - 3 кнопки
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -208,12 +237,12 @@ fun MainScreen(
                     ) {
                         Icon(
                             imageVector = if (canClaimBonus) Icons.Default.CardGiftcard else Icons.Default.CheckCircle,
-                            contentDescription = "Shop",
+                            contentDescription = "Bonus",
                             modifier = Modifier.size(30.dp)
                         )
 
                         Text(
-                            if (canClaimBonus) "CLAIM BONUS" else "BONUS CLAIMED",
+                            if (canClaimBonus) "BONUS" else "CLAIMED",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (canClaimBonus) ButtonSecondaryText else ButtonSecondaryDisabledText

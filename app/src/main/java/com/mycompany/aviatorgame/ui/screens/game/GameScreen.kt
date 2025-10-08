@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mycompany.aviatorgame.ui.components.BetControl
 import com.mycompany.aviatorgame.ui.components.AviatorGameCanvas
+import com.mycompany.aviatorgame.ui.theme.ButtonCta
+import com.mycompany.aviatorgame.ui.theme.ButtonCtaDisabled
+import com.mycompany.aviatorgame.ui.theme.ButtonCtaDisabledText
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondary
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondaryText
 import com.mycompany.aviatorgame.ui.theme.ButtonTertiaryText
@@ -221,9 +224,10 @@ fun GameScreen(
                         .height(48.dp),
                     enabled = !gameState.isPlaying && gameState.activeBets.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00d47e),
-                        disabledContainerColor = Color(0xFF3a3f4e)
-                    )
+                        containerColor = ButtonCta,
+                        disabledContainerColor = ButtonCtaDisabled
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         if (gameState.activeBets.isNotEmpty()) {
@@ -236,7 +240,7 @@ fun GameScreen(
                         color = if (!gameState.isPlaying && gameState.activeBets.isNotEmpty()) {
                             Color.White
                         } else {
-                            Color.White.copy(alpha = 0.5f)
+                            ButtonCtaDisabledText
                         }
                     )
                 }
