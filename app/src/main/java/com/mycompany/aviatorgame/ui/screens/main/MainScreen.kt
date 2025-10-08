@@ -59,6 +59,26 @@ fun MainScreen(
             },
             actions = {
                 // Balance
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF242938)
+                    ),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("💰", fontSize = 16.sp)
+                        Text(
+                            gameState.balance.formatCoins(),
+                            color = Color(0xFFffd700),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
                 // Settings Button
                 TextButton(
                     onClick = onSettingsClick,
@@ -108,51 +128,6 @@ fun MainScreen(
                     color = Color.White,
                     letterSpacing = 6.sp
                 )
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Balance Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = CardBackground
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "YOUR BALANCE",
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = 2.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "💰",
-                            fontSize = 28.sp
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            gameState.balance.formatCoins(),
-                            color = Color(0xFFffd700),
-                            fontWeight = FontWeight.Black,
-                            fontSize = 32.sp
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

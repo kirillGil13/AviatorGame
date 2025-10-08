@@ -136,13 +136,13 @@ fun ShopScreen(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00d47e))
+                    CircularProgressIndicator(color = ButtonPrimary)
                 }
             }
             is BillingManager.PurchaseState.Error -> {
                 AlertDialog(
                     onDismissRequest = viewModel::resetPurchaseState,
-                    containerColor = Color(0xFF242938),
+                    containerColor = CardBackground,
                     title = {
                         Text("Purchase Failed", color = Color.White)
                     },
@@ -150,8 +150,14 @@ fun ShopScreen(
                         Text(state.message, color = Color.White.copy(alpha = 0.8f))
                     },
                     confirmButton = {
-                        TextButton(onClick = viewModel::resetPurchaseState) {
-                            Text("OK", color = Color(0xFF00d47e))
+                        Button(
+                            onClick = viewModel::resetPurchaseState,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ButtonPrimary
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("OK", color = Color.White)
                         }
                     }
                 )
@@ -159,7 +165,7 @@ fun ShopScreen(
             is BillingManager.PurchaseState.Success -> {
                 AlertDialog(
                     onDismissRequest = viewModel::resetPurchaseState,
-                    containerColor = Color(0xFF242938),
+                    containerColor = CardBackground,
                     title = {
                         Text("Purchase Successful!", color = Color.White)
                     },
@@ -171,16 +177,27 @@ fun ShopScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
                             Text(
                                 "You received ${state.coins.formatCoins()} coins!",
-                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 18.sp,
+                                color = Color.White,
+                                modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
                         }
                     },
                     confirmButton = {
-                        TextButton(onClick = viewModel::resetPurchaseState) {
-                            Text("Awesome!", color = Color(0xFF00d47e))
+                        Button(
+                            onClick = viewModel::resetPurchaseState,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ButtonPrimary
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Awesome!", color = Color.White)
                         }
                     }
                 )

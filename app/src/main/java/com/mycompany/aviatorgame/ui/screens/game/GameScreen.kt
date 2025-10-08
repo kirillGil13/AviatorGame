@@ -23,6 +23,7 @@ import com.mycompany.aviatorgame.ui.components.AviatorGameCanvas
 import com.mycompany.aviatorgame.ui.theme.ButtonCta
 import com.mycompany.aviatorgame.ui.theme.ButtonCtaDisabled
 import com.mycompany.aviatorgame.ui.theme.ButtonCtaDisabledText
+import com.mycompany.aviatorgame.ui.theme.ButtonCtaText
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondary
 import com.mycompany.aviatorgame.ui.theme.ButtonSecondaryText
 import com.mycompany.aviatorgame.ui.theme.ButtonTertiaryText
@@ -238,7 +239,7 @@ fun GameScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (!gameState.isPlaying && gameState.activeBets.isNotEmpty()) {
-                            Color.White
+                            ButtonCtaText
                         } else {
                             ButtonCtaDisabledText
                         }

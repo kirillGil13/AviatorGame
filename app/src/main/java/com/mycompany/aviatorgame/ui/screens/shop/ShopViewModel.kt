@@ -27,7 +27,6 @@ class ShopViewModel @Inject constructor(
     fun handlePurchaseSuccess(coins: Int) {
         viewModelScope.launch {
             repository.addPurchasedCoins(coins)
-            billingManager.resetPurchaseState()
         }
     }
 
