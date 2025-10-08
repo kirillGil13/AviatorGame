@@ -12,7 +12,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @Singleton
 class GameRepository @Inject constructor(
@@ -45,24 +44,37 @@ class GameRepository @Inject constructor(
         }.launchIn(GlobalScope)
     }
 
+    /**
+     * Начинает новый раунд
+     * Генерирует краш-множитель с учетом истории предыдущих крашей
+     */
     fun startRound() {
+        val state = _gameState.value
+
+        // Генерируем краш-множитель с учетом истории
+        val crashMultiplier = Constants.generateCrashMultiplier(state.crashHistory)
+
         _gameState.update {
             it.copy(
                 isPlaying = true,
                 isCrashed = false,
                 currentMultiplier = 1.0f,
-                roundId = it.roundId + 1, // Инкрементируем ID раунда
-                shouldPlayCrashAnimation = false // Сбрасываем флаг анимации
+                roundId = it.roundId + 1,
+                shouldPlayCrashAnimation = false,
+                crashMultiplier = crashMultiplier
             )
         }
     }
 
+    /**
+     * Обновляет текущий множитель
+     * Возвращает true если произошел краш
+     */
     fun updateMultiplier(multiplier: Float): Boolean {
-        // Используем динамическую вероятность краша
-        val crashProbability = Constants.getCrashProbability(multiplier)
-        val shouldCrash = Random.nextFloat() < crashProbability
+        val state = _gameState.value
 
-        if (shouldCrash || multiplier >= Constants.MAX_MULTIPLIER) {
+        // Проверяем достигнут ли заранее вычисленный краш-множитель
+        if (multiplier >= state.crashMultiplier) {
             crash()
             return true
         }
@@ -70,7 +82,6 @@ class GameRepository @Inject constructor(
         _gameState.update { it.copy(currentMultiplier = multiplier) }
 
         // Auto cash out check
-        val state = _gameState.value
         state.activeBets.forEach { bet ->
             if (bet.isActive && !bet.cashedOut &&
                 bet.autoCashOut != null && multiplier >= bet.autoCashOut) {
@@ -81,30 +92,42 @@ class GameRepository @Inject constructor(
         return false
     }
 
+    /**
+     * Обрабатывает краш самолета
+     * Добавляет текущий краш-множитель в историю
+     */
     fun crash() {
         val state = _gameState.value
-        val totalLoss = state.activeBets
-            .filter { it.isActive && !it.cashedOut }
-            .sumOf { it.amount }
+
+        // Добавляем текущий краш в историю (храним последние 20)
+        val updatedHistory = (state.crashHistory + state.crashMultiplier).takeLast(20)
 
         _gameState.update {
             it.copy(
                 isPlaying = false,
                 isCrashed = true,
                 activeBets = emptyList(),
-                shouldPlayCrashAnimation = true // Устанавливаем флаг для проигрывания анимации
+                shouldPlayCrashAnimation = true,
+                currentMultiplier = it.crashMultiplier, // Устанавливаем финальный множитель
+                crashHistory = updatedHistory // Обновляем историю для следующих раундов
             )
         }
     }
 
-    // Метод для сброса флага анимации после её проигрывания
+    /**
+     * Помечает что анимация краша проиграна
+     */
     fun markCrashAnimationPlayed() {
         _gameState.update {
             it.copy(shouldPlayCrashAnimation = false)
         }
     }
 
-    // Полный сброс состояния краша (используется при уходе с экрана)
+    /**
+     * Полный сброс состояния краша
+     * Используется при уходе с игрового экрана
+     * ВАЖНО: crashHistory НЕ сбрасываем - она нужна для генерации следующих раундов
+     */
     fun resetCrashState() {
         _gameState.update {
             it.copy(
@@ -112,11 +135,17 @@ class GameRepository @Inject constructor(
                 isCrashed = false,
                 shouldPlayCrashAnimation = false,
                 currentMultiplier = 1.0f,
-                activeBets = emptyList()
+                activeBets = emptyList(),
+                crashMultiplier = 0f
+                // crashHistory сохраняем для следующих раундов!
             )
         }
     }
 
+    /**
+     * Размещает ставку
+     * Возвращает true если ставка успешно размещена
+     */
     fun placeBet(betId: Int, amount: Int, autoCashOut: Float? = null): Boolean {
         val state = _gameState.value
         if (state.isPlaying) return false
@@ -127,7 +156,7 @@ class GameRepository @Inject constructor(
         if (state.activeBets.any { it.id == betId }) return false
 
         val newBet = Bet(
-            id = betId, // Используем переданный ID
+            id = betId,
             amount = amount,
             autoCashOut = autoCashOut,
             isActive = true
@@ -147,6 +176,9 @@ class GameRepository @Inject constructor(
         return true
     }
 
+    /**
+     * Отменяет ставку до начала раунда
+     */
     fun cancelBet(betId: Int) {
         val state = _gameState.value
         if (state.isPlaying) return
@@ -165,6 +197,9 @@ class GameRepository @Inject constructor(
         }
     }
 
+    /**
+     * Забирает выигрыш по текущему множителю
+     */
     fun cashOut(betId: Int) {
         val state = _gameState.value
         if (!state.isPlaying) return
@@ -193,6 +228,10 @@ class GameRepository @Inject constructor(
         }
     }
 
+    /**
+     * Забирает ежедневный бонус
+     * Возвращает сумму бонуса или null если уже забран сегодня
+     */
     suspend fun claimDailyBonus(): Int? {
         val state = _gameState.value
 
@@ -222,6 +261,9 @@ class GameRepository @Inject constructor(
         return bonusAmount
     }
 
+    /**
+     * Добавляет купленные монеты к балансу
+     */
     suspend fun addPurchasedCoins(coins: Int) {
         _gameState.update {
             it.copy(balance = it.balance + coins)

@@ -11,6 +11,8 @@ data class GameState(
     val activeBets: List<Bet> = emptyList(),
     val lastDailyBonusDate: Long = 0L,
     val consecutiveDays: Int = 0,
-    val roundId: Int = 0, // Уникальный ID раунда для отслеживания анимаций
-    val shouldPlayCrashAnimation: Boolean = false // Флаг для проигрывания анимации краша
+    val roundId: Int = 0,
+    val shouldPlayCrashAnimation: Boolean = false,
+    val crashMultiplier: Float = 0f, // НОВОЕ: множитель при котором произойдет краш
+    val crashHistory: List<Float> = emptyList() // НОВОЕ: история последних крашей
 )
